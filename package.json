@@ -1,6 +1,6 @@
 {
   "name": "rpi-docker-webhooks",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A simple webhook listener to automate Docker deployments on a Raspberry Pi.",
   "main": "app.js",
   "type": "module",
