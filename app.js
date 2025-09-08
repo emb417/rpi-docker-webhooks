@@ -12,9 +12,12 @@ const COMPOSE_DIR = "/compose";
 const COMPOSE_FILE = "docker-compose.yml";
 const DEBOUNCE_DELAY = 5000;
 
+// Containers to manage (excluding the listener itself)
+const containers = ["rpi-nginx", "metaforiq-next", "metaforiq-node"];
+
 let debounceTimeout;
 
-// Utility to run shell commands
+// Run a shell command with logging
 const runCommand = (cmd, label) => {
   exec(cmd, { cwd: COMPOSE_DIR }, (error, stdout, stderr) => {
     if (error) {
@@ -26,17 +29,17 @@ const runCommand = (cmd, label) => {
   });
 };
 
-// Main deployment logic
+// Deployment sequence
 const runDeployment = () => {
-  logger.info("Starting deployment sequence...");
+  logger.info("🔁 Starting deployment sequence...");
 
-  const command = [
-    `docker compose -f ${COMPOSE_FILE} down`,
-    `docker compose -f ${COMPOSE_FILE} pull`,
-    `docker compose -f ${COMPOSE_FILE} up -d`,
-  ].join(" && ");
+  const stopCmd = `docker stop ${containers.join(" ")} || true`;
+  const rmCmd = `docker rm -f ${containers.join(" ")} || true`;
+  const pullCmd = `docker compose -f ${COMPOSE_FILE} pull`;
+  const upCmd = `docker compose -f ${COMPOSE_FILE} up -d`;
 
-  runCommand(command, "Deployment");
+  const fullCommand = [stopCmd, rmCmd, pullCmd, upCmd].join(" && ");
+  runCommand(fullCommand, "Deployment");
 };
 
 // Webhook endpoint
@@ -44,20 +47,20 @@ app.post("/webhooks", (req, res) => {
   const repo = req.body?.repository?.repo_name;
 
   if (!repo) {
-    logger.warn("Webhook received without repository name.");
+    logger.warn("⚠️ Webhook received without repository name.");
     return res.status(400).send("Invalid payload.");
   }
 
-  logger.info(`Webhook received for ${repo}`);
+  logger.info(`📦 Webhook received for ${repo}`);
   res.status(200).send("Webhook accepted.");
 
   if (debounceTimeout) clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(() => {
-    logger.info(`Triggering deployment for ${repo}`);
+    logger.info(`🚀 Triggering deployment for ${repo}`);
     runDeployment();
   }, DEBOUNCE_DELAY);
 });
 
 app.listen(port, () => {
-  logger.info(`Webhook listener running on port ${port}`);
+  logger.info(`✅ Webhook listener running on port ${port}`);
 });
