@@ -2,6 +2,16 @@
 
 As of the latest update, the webhook listener is no longer managed via `docker-compose.yml`. This avoids conflicts during deployment and ensures the listener remains active while orchestrating other containers.
 
+## 📥 Pulling the Latest Listener Image
+
+Before starting or restarting the listener, make sure you have the latest version of the image:
+
+```bash
+docker pull emb417/rpi-docker-webhooks:latest
+```
+
+This ensures your container runs the most up-to-date code pushed from your GitHub Actions workflow.
+
 ## 🔄 Running the Listener
 
 To start the listener manually:
