@@ -30,25 +30,30 @@ app.post("/webhooks", (req, res) => {
     const dockerComposeFile = "/compose/docker-compose.yml";
     let command = "";
     let serviceName = "";
+    let containerName = "";
 
     // Check which repository sent the webhook and set the appropriate command.
     if (webhook.includes("metaforiq-next")) {
       logger.info("received Next.js webhook");
       serviceName = "metaforiq-next";
+      containerName = "metaforiq-next";
     } else if (webhook.includes("metaforiq-node")) {
       logger.info("received Node.js webhook");
       serviceName = "metaforiq-node";
+      containerName = "metaforiq-node";
     } else if (webhook.includes("rpi-nginx")) {
       logger.info("received Nginx webhook");
       serviceName = "nginx";
+      containerName = "rpi-nginx";
     } else {
       logger.info("received unknown webhook");
       res.status(400).send("Unknown webhook payload.");
       return;
     }
 
-    // Construct the command using the service name and file path
-    command = `echo "Starting deployment for ${serviceName}..." && docker compose -f ${dockerComposeFile} stop ${serviceName} && docker compose -f ${dockerComposeFile} rm -f ${serviceName} && docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName} --no-deps`;
+    // This command uses lower-level `docker` commands to explicitly stop and remove
+    // the container by its name, then uses `docker compose` to pull and recreate it.
+    command = `echo "Starting deployment for ${serviceName}..." && docker stop ${containerName} && docker rm -f ${containerName} && docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName} --no-deps`;
 
     // The `cwd` option is necessary to run the command from the directory
     // containing the `docker-compose.yml` file.
