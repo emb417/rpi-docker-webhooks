@@ -24,7 +24,7 @@ const runDeployment = () => {
   // commands to ensure all containers are forcefully stopped and removed before
   // recreating the entire application stack. This prevents container name conflicts
   // and ensures all network dependencies are correctly re-established.
-  const command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} down && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
+  const command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} ps -q | xargs docker stop && docker compose -f ${dockerComposeFile} ps -q -a | xargs docker rm -f && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
 
   // The `cwd` option is necessary to run the command from the directory
   // containing the `docker-compose.yml` file.
