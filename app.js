@@ -48,7 +48,7 @@ app.post("/webhooks", (req, res) => {
     }
 
     // Construct the command using the service name and file path
-    command = `docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName}`;
+    command = `docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName} --forece-recreate`;
 
     // The `cwd` option is necessary to run the command from the directory
     // containing the `docker-compose.yml` file.

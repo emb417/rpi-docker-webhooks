@@ -21,6 +21,8 @@ COPY . .
 #
 FROM node:24-alpine AS runner
 
+ENV TZ="America/Los_Angeles"
+
 # This command is added to install the Docker command-line tool and compose.
 RUN apk add --no-cache docker-cli docker-compose
 
