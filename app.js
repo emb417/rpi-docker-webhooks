@@ -12,37 +12,23 @@ const COMPOSE_DIR = "/compose";
 const COMPOSE_FILE = "docker-compose.yml";
 const DEBOUNCE_DELAY = 5000;
 
-// Containers to manage (excluding the listener itself)
-const containers = ["rpi-nginx", "metaforiq-next", "metaforiq-node"];
-
 let debounceTimeout;
 
-// Run a shell command with logging
-const runCommand = (cmd, label) => {
-  exec(cmd, { cwd: COMPOSE_DIR }, (error, stdout, stderr) => {
+const runDeployment = () => {
+  logger.info("🔁 Running deployment...");
+
+  const command = `docker compose -f ${COMPOSE_FILE} pull && docker compose -f ${COMPOSE_FILE} up -d`;
+
+  exec(command, { cwd: COMPOSE_DIR }, (error, stdout, stderr) => {
     if (error) {
-      logger.error({ error: error.message }, `${label} failed`);
+      logger.error({ error: error.message }, "Deployment failed");
       return;
     }
-    logger.info({ stdout }, `${label} output`);
-    if (stderr) logger.warn({ stderr }, `${label} stderr`);
+    logger.info({ stdout }, "Deployment output");
+    if (stderr) logger.warn({ stderr }, "Deployment stderr");
   });
 };
 
-// Deployment sequence
-const runDeployment = () => {
-  logger.info("🔁 Starting deployment sequence...");
-
-  const stopCmd = `docker stop ${containers.join(" ")} || true`;
-  const rmCmd = `docker rm -f ${containers.join(" ")} || true`;
-  const pullCmd = `docker compose -f ${COMPOSE_FILE} pull`;
-  const upCmd = `docker compose -f ${COMPOSE_FILE} up -d`;
-
-  const fullCommand = [stopCmd, rmCmd, pullCmd, upCmd].join(" && ");
-  runCommand(fullCommand, "Deployment");
-};
-
-// Webhook endpoint
 app.post("/webhooks", (req, res) => {
   const repo = req.body?.repository?.repo_name;
 
