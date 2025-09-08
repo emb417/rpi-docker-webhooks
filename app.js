@@ -2,15 +2,8 @@ import express from "express";
 import { exec } from "child_process";
 import pino from "pino";
 
-// Configure logging for clear, actionable output.
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
-  transport: {
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-    },
-  },
 });
 
 const app = express();
