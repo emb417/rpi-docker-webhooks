@@ -14,21 +14,34 @@ const DEBOUNCE_DELAY = 5000;
 
 let debounceTimeout;
 
-const runDeployment = () => {
-  logger.info("🔁 Running deployment...");
-
-  const command = `docker compose -f ${COMPOSE_FILE} pull && docker compose -f ${COMPOSE_FILE} up -d`;
-
-  exec(command, { cwd: COMPOSE_DIR }, (error, stdout, stderr) => {
+// Utility to run shell commands with logging
+const runCommand = (cmd, label) => {
+  exec(cmd, { cwd: COMPOSE_DIR }, (error, stdout, stderr) => {
     if (error) {
-      logger.error({ error: error.message }, "Deployment failed");
+      logger.error({ error: error.message }, `${label} failed`);
       return;
     }
-    logger.info({ stdout }, "Deployment output");
-    if (stderr) logger.warn({ stderr }, "Deployment stderr");
+    logger.info({ stdout }, `${label} output`);
+    if (stderr) logger.warn({ stderr }, `${label} stderr`);
   });
 };
 
+// Deployment logic
+const runDeployment = () => {
+  logger.info("🔁 Starting deployment sequence...");
+
+  const cleanupCmd = `docker rm -f metaforiq-node metaforiq-next || true`;
+  const pullCmd = `docker compose -f ${COMPOSE_FILE} pull`;
+  const upAppsCmd = `docker compose -f ${COMPOSE_FILE} up -d metaforiq-node metaforiq-next`;
+  const restartNginxCmd = `docker compose -f ${COMPOSE_FILE} up -d --no-deps --force-recreate rpi-nginx`;
+
+  const fullCommand = [cleanupCmd, pullCmd, upAppsCmd, restartNginxCmd].join(
+    " && "
+  );
+  runCommand(fullCommand, "Deployment");
+};
+
+// Webhook endpoint
 app.post("/webhooks", (req, res) => {
   const repo = req.body?.repository?.repo_name;
 
