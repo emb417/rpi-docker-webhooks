@@ -21,8 +21,14 @@ const runCommand = (cmd, label) => {
       logger.error({ error: error.message }, `${label} failed`);
       return;
     }
+
     logger.info({ stdout }, `${label} output`);
-    if (stderr) logger.warn({ stderr }, `${label} stderr`);
+
+    if (stderr && stderr.trim()) {
+      logger.info({ stderr }, `${label} progress`);
+    }
+
+    logger.info(`✅ ${label} completed successfully`);
   });
 };
 
