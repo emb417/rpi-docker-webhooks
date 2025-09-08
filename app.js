@@ -33,7 +33,7 @@ const runDeployment = () => {
   const cleanupCmd = `docker rm -f metaforiq-node metaforiq-next || true`;
   const pullCmd = `docker compose -f ${COMPOSE_FILE} pull`;
   const upAppsCmd = `docker compose -f ${COMPOSE_FILE} up -d metaforiq-node metaforiq-next`;
-  const restartNginxCmd = `docker compose -f ${COMPOSE_FILE} up -d --no-deps --force-recreate rpi-nginx`;
+  const restartNginxCmd = `docker compose -f ${COMPOSE_FILE} up -d --no-deps --force-recreate nginx`;
 
   const fullCommand = [cleanupCmd, pullCmd, upAppsCmd, restartNginxCmd].join(
     " && "
