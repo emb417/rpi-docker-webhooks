@@ -53,7 +53,7 @@ app.post("/webhooks", (req, res) => {
 
     // This command uses lower-level `docker` commands to explicitly stop and remove
     // the container by its name, then uses `docker compose` to pull and recreate it.
-    command = `echo "Starting deployment for ${serviceName}..." && docker stop ${containerName} && docker rm -f ${containerName} && docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName} --no-deps`;
+    command = `echo "Starting deployment for ${serviceName}..." && docker stop ${containerName} && docker rm -f ${containerName} && docker compose -f ${dockerComposeFile} pull ${serviceName} && docker compose -f ${dockerComposeFile} up -d ${serviceName}`;
 
     // The `cwd` option is necessary to run the command from the directory
     // containing the `docker-compose.yml` file.
