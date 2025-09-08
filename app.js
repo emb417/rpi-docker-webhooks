@@ -20,11 +20,10 @@ const runDeployment = () => {
   // Define the docker compose file path once to avoid repetition
   const dockerComposeFile = "/compose/docker-compose.yml";
 
-  // This is the most robust and production-ready solution. It uses lower-level docker
-  // commands to ensure all containers are forcefully stopped and removed before
-  // recreating the entire application stack. This prevents container name conflicts
-  // and ensures all network dependencies are correctly re-established.
-  const command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} ps -q | xargs docker stop && docker compose -f ${dockerComposeFile} ps -q -a | xargs docker rm -f && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
+  // This is the most robust and production-ready solution. It gracefully handles
+  // cases where containers are already stopped or removed, ensuring the
+  // deployment script continues without error.
+  const command = `echo "Starting integrated deployment..." && docker stop webhook-listener metaforiq-next metaforiq-node nginx || true && docker rm -f webhook-listener metaforiq-next metaforiq-node nginx || true && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
 
   // The `cwd` option is necessary to run the command from the directory
   // containing the `docker-compose.yml` file.
