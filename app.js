@@ -28,7 +28,7 @@ app.post("/webhooks", (req, res) => {
     // Define the docker compose file path once to avoid repetition
     const dockerComposeFile = "/compose/docker-compose.yml";
     let command = "";
-    command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} down && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
+    command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} ps -q | xargs docker stop && docker compose -f ${dockerComposeFile} ps -q -a | xargs docker rm -f && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
 
     // The `cwd` option is necessary to run the command from the directory
     // containing the `docker-compose.yml` file.
