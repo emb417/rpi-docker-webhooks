@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Define the webhook endpoint.
 // Docker Hub sends a POST request to this endpoint when an image is pushed.
-app.post("/", (req, res) => {
+app.post("/webhooks", (req, res) => {
   logger.info("Webhook received. Processing deployment...");
 
   // This command will stop, pull the latest images, and restart all services.
