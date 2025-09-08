@@ -18,7 +18,8 @@ app.post("/webhooks", (req, res) => {
   logger.info("Webhook received. Processing deployment...");
 
   // This command will stop, pull the latest images, and restart all services.
-  const deployCommand = "docker compose pull && docker compose up -d";
+  const deployCommand =
+    "cd /compose && docker compose pull && docker compose up -d";
 
   // Execute the command to update the running containers.
   exec(deployCommand, (error, stdout, stderr) => {
