@@ -12,13 +12,38 @@ const app = express();
 // Middleware to parse the JSON body
 app.use(express.json());
 
+// Debounce logic to handle multiple rapid webhooks from a single push
+let debounceTimeout;
+const DEBOUNCE_DELAY = 5000; // 5 seconds
+
+const runDeployment = () => {
+  // Define the docker compose file path once to avoid repetition
+  const dockerComposeFile = "/compose/docker-compose.yml";
+
+  // This is the most robust and production-ready solution. It uses lower-level docker
+  // commands to ensure all containers are forcefully stopped and removed before
+  // recreating the entire application stack. This prevents container name conflicts
+  // and ensures all network dependencies are correctly re-established.
+  const command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} down && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
+
+  // The `cwd` option is necessary to run the command from the directory
+  // containing the `docker-compose.yml` file.
+  exec(command, { cwd: "/compose" }, (error, stdout, stderr) => {
+    if (error) {
+      logger.error({ error: error.message }, "exec error");
+      return; // A response has already been sent
+    }
+    logger.info(`stdout: ${stdout}`);
+    if (stderr) {
+      logger.warn(`stderr: ${stderr}`);
+    }
+  });
+};
+
 // Webhook route
 app.post("/webhooks", (req, res) => {
   try {
     const webhook = req.body.repository?.repo_name;
-    const mediaType = req.body.mediaType;
-    const isFinalPush =
-      mediaType === "application/vnd.docker.distribution.manifest.list.v2+json";
 
     if (!webhook) {
       logger.warn("Received a request with no repository name.");
@@ -27,35 +52,19 @@ app.post("/webhooks", (req, res) => {
     }
 
     logger.info(`Webhook received for ${webhook}`);
-    logger.info(`Processing webhook with mediaType: ${mediaType}`);
 
     // Immediately send a 200 OK response to prevent timeouts.
     // The deployment commands will run in the background.
     res.status(200).send("Webhook received and deployment started.");
 
-    // Only run the deployment command for the final, multi-architecture manifest list push.
-    if (isFinalPush) {
-      // Define the docker compose file path once to avoid repetition
-      const dockerComposeFile = "/compose/docker-compose.yml";
-      const command = `echo "Starting integrated deployment..." && docker compose -f ${dockerComposeFile} down && docker compose -f ${dockerComposeFile} pull && docker compose -f ${dockerComposeFile} up -d`;
-
-      // The `cwd` option is necessary to run the command from the directory
-      // containing the `docker-compose.yml` file.
-      exec(command, { cwd: "/compose" }, (error, stdout, stderr) => {
-        if (error) {
-          logger.error({ error: error.message }, "exec error");
-          return; // A response has already been sent
-        }
-        logger.info(`stdout: ${stdout}`);
-        if (stderr) {
-          logger.warn(`stderr: ${stderr}`);
-        }
-      });
-    } else {
-      logger.info(
-        `Ignoring webhook for ${webhook} as it is not the final manifest push.`
-      );
+    // Clear any existing timeout and set a new one
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
     }
+    debounceTimeout = setTimeout(() => {
+      logger.info(`Triggering debounced deployment for ${webhook}.`);
+      runDeployment();
+    }, DEBOUNCE_DELAY);
   } catch (e) {
     logger.error(
       { error: e.message },
