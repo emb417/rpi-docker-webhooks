@@ -1,14 +1,15 @@
-# Ignore the node_modules directory, since we run npm install inside the container
+# Ignore node_modules
 node_modules
 
-# Ignore the .git directory to speed up the build context
+# Ignore git files
 .git
+.gitignore
 
-# Ignore GitHub Actions workflow files
+# Ignore github files
 .github/
 
 # Ignore log files
 *.log
 
-# macOS specific files
+# Ignore macOS specific files
 .DS_Store

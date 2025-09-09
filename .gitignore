@@ -1,7 +1,8 @@
-# Ignore the node_modules directory
-node_modules/
-
-# Ignore log files
-*.log
-
+# Ignore Mac system files
 .DS_Store
+
+# Ignore node_modules folder
+node_modules
+
+# Ignore dotenv file
+.env
