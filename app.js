@@ -36,14 +36,14 @@ const runCommand = (cmd, label) => {
 const runDeployment = () => {
   logger.info("🔁 Starting deployment sequence...");
 
-  const cleanupCmd = `docker rm -f metaforiq-node metaforiq-next || true`;
   const pullCmd = `docker compose -f ${COMPOSE_FILE} pull`;
-  const upAppsCmd = `docker compose -f ${COMPOSE_FILE} up -d metaforiq-node metaforiq-next`;
-  const restartNginxCmd = `docker restart rpi-nginx`;
+  const downCmd = `docker compose -f ${COMPOSE_FILE} down`;
+  const upCmd = `docker compose -f ${COMPOSE_FILE} up -d`;
 
-  const fullCommand = [cleanupCmd, pullCmd, upAppsCmd, restartNginxCmd].join(
-    " && "
-  );
+  // It ensures the latest images are pulled, old containers are removed,
+  // and new ones are started.
+  const fullCommand = `${pullCmd} && ${downCmd} && ${upCmd}`;
+
   runCommand(fullCommand, "Deployment");
 };
 
