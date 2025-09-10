@@ -19,6 +19,7 @@ To start the listener manually:
 ```bash
 docker run -d \
   --name webhook-listener \
+  -p 8009:8009 \
   --restart always \
   --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
